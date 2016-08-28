@@ -29,18 +29,26 @@ model_name = arg_list{2};
 %Some data may need normalization on the features
 [X_train, Y_train, X_val, Y_val, X_test, Y_test] = data_split(data);
 
+
 [X_train] = feature_norm(X_train);
 [X_val] = feature_norm(X_val);
 [X_test] = feature_norm(X_test);
 
+m_train = length(Y_train);
+m_val = length(Y_val);
+m_test = length(Y_test);
+
+X_train = [ones(m_train, 1) X_train];
+X_val = [ones(m_val, 1) X_val];
+X_test = [ones(m_test, 1) X_test];
 
 %Weight initialization
 feature_size = size(X_train, 2);
 weights = randn(feature_size, 1) * 0.5;
 
-bias = randn(1);
-
-
+alpha = 0.01; %which is the learning rate
+iterations = 1000;
+total_cost = zeros(iterations, 1);
 
 if strcmp(model_name, "analytical")
     %Training
@@ -51,12 +59,12 @@ if strcmp(model_name, "analytical")
     loss_test  = analytical_test(X_test, Y_test, weights);
 
 elseif strcmp(model_name, "iterative")
-    alpha = 0.01; %which is the learning rate
-    iterations = 1000;
+   
     for i = 1:1:iterations
     	%printf("weights :%f\n", i, weights);
         %Training
         [loss_train, weights] = linearR_train(X_train, Y_train, weights, alpha);
+        total_cost(i) = loss_train;
 
         if i <= 10
             printf("Iteration %d loss: %f\n", i, loss_train);
@@ -72,10 +80,11 @@ else
     printf("Training model should be provided !!!!! \n")
     return
 end
-    
 
-
-	
+figure;
+plot(1:numel(total_cost), total_cost, '-b', 'LineWidth', 2);
+xlabel('Number of iterations');
+ylabel('Total cost');
 
 %printf("weights for training data: %f\n", weights);
 printf("Final loss for training data: %f\n", loss_train);
